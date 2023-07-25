@@ -1,46 +1,61 @@
 import cv2
-import numpy as np
+import imutils
+import pytesseract
 
-# Set up webcam
-cap = cv2.VideoCapture(1)  # Use the appropriate webcam index if multiple webcams are available
+pytesseract.pytesseract.tesseract_cmd =r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
-while True:
-    # Capture frame from the webcam
-    ret, frame = cap.read()
-                                                                                                   
-    # Preprocess the frame
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)  # Convert frame to grayscale
-    blurred = cv2.GaussianBlur(gray, (5, 5), 0)  # Apply Gaussian blur to reduce noise
-    _, threshold = cv2.threshold(blurred, 127, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)  # Apply thresholding to convert to binary image
+image = cv2.imread('sampelv.jpg')
+image = imutils.resize(image, width=500)
 
-    # Detect edges using Canny edge detection
-    edges = cv2.Canny(threshold, 50, 150)
+cv2.imshow('Original Image', image)
+cv2.waitKey(0)
 
-    # Find contours in the edge image
-    contours, _ = cv2.findContours(edges.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-    # Filter contours based on area and aspect ratio
-    min_area = 500  # Minimum contour area to consider
-    min_aspect_ratio = 2.5  # Minimum aspect ratio of the bounding rectangle to consider
-    detected_plates = []
-    for contour in contours:
-        area = cv2.contourArea(contour)
-        x, y, w, h = cv2.boundingRect(contour)
-        aspect_ratio = w / float(h)
+smooth = cv2.bilateralFilter(gray, 11, 17, 17)
+cv2.imshow("Gray Image", gray)
+cv2.waitKey(0)
 
-        if area > min_area and aspect_ratio > min_aspect_ratio:
-            detected_plates.append(contour)
+corner = cv2.Canny(gray, 170, 200)
+cv2.imshow("Highlighted edges", corner)
+cv2.waitKey(0)
 
-    # Draw contours on the frame
-    cv2.drawContours(frame, detected_plates, -1, (0, 255, 0), 2)
+seg , new = cv2.findContours(corner.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
-    # Display the frame with detected contours
-    cv2.imshow("Frame", frame)
+image1 = image.copy()
+cv2.drawContours(image1, seg, -1, (0,0,255),3)
+cv2.imshow('Edge segmention', image1)
+cv2.waitKey(0)
 
-    # Check for key press to exit the loop
-    if cv2.waitKey(1) & 0xFF == ord('q'):
+seg=sorted(seg , key=cv2.contourArea, reverse=True)[:30]
+NoPlate = None
+
+image2 = image.copy()
+cv2.drawContours(image2, seg, -1, (0,255,0),3)
+cv2.imshow("Number plate segmention", image2)
+cv2.waitKey(0)
+
+count = 0
+name = 1
+
+for i in seg:
+    perimeter = cv2.arcLength(i, True)
+    approx = cv2.approxPolyDP(i, 0.02*perimeter, True)
+
+    if(len(approx == 4)):
+        NoPlate = approx
+        x, y, w, h = cv2.boundingRect(i)
+        crp_image = image[y:y+h, x:x+w]
+
+        cv2.imwrite(str(name)+ '.png', crp_image)
+        name += 1
+
         break
 
-# Release the webcam and close windows
-cap.release()
-cv2.destroyAllWindows()
+cv2.drawContours(image,[NoPlate], -1, (0,255,0),3)
+cv2.imshow("Final Image", image)
+cv2.waitKey(0)
+
+crp_img = '1.png'
+cv2.imshow('Number Plate', cv2.imread(crp_img))
+cv2.waitKey(0)
