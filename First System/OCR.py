@@ -4,7 +4,7 @@ import pytesseract
 
 pytesseract.pytesseract.tesseract_cmd =r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
-image = cv2.imread('img/samp30.jpg')
+image = cv2.imread('beat.jpg')
 image = imutils.resize(image, width=500)
 
 cv2.imshow('Original Image', image)
