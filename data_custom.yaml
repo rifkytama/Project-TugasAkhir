@@ -1,0 +1,7 @@
+train: /C:/xampp/htdocs/sistemParkir/train
+val: /C:/xampp/htdocs/sistemParkir/val
+#test: /workspace/yolo_obj_detect_try/val
+
+nc: 2
+
+names: ["plate", "sticker"]

@@ -1,0 +1,7 @@
+train: /workspace/PROJECT_TA_TAMA/train
+val: /workspace/PROJECT_TA_TAMA/test/test-3
+#test: /workspace/yolo_obj_detect_try/val
+
+nc: 2
+
+names: ["plate", "sticker"]
